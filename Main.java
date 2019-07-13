@@ -10,8 +10,8 @@ public class Main {
     private static final int ERROR = 5;
 
     public static void main(String[] args) {
-        String eval = "eval(eval(eval(3 / eval(2 * 323 + 1)) + eval(3 * 3)))";
-        for(String s : genTree(eval)) {
+        String eval = "eval(3 * 3)";
+        for (String s : genTree(eval)) {
             System.out.println(s);
         }
     }
@@ -21,8 +21,8 @@ public class Main {
     }
 
     private static ArrayList<String> genTree(String s) {
-        if(occurs("\\(", s) != occurs("\\)", s) || !s.contains("(") || !s.contains(")")) return new ArrayList<>();
         String indent = "";
+        int parenCount = 0;
         s = s.replaceAll(" ", "");
         ArrayList<String> tree = new ArrayList<>();
         int searchStatus = EVAL;
@@ -35,60 +35,54 @@ public class Main {
                     searchStatus = LPAREN;
                     break;
                 case LPAREN:
+                    parenCount++;
                     indent += "    ";
                     tree.add(indent + "LParenthesis: (");
                     s = s.substring(1);
-                    if(s.charAt(0) == '(') break;
-                    else if(s.indexOf("eval") == 0) searchStatus = EVAL;
-                    else if(Character.isDigit(s.charAt(0))) searchStatus = NUM;
+                    if (s.charAt(0) == '(') break;
+                    else if (s.indexOf("eval") == 0) searchStatus = EVAL;
+                    else if (Character.isDigit(s.charAt(0))) searchStatus = NUM;
                     else searchStatus = ERROR;
                     break;
                 case NUM:
                     String num = "";
-                    while(Character.isDigit(s.charAt(0))) {
+                    while (Character.isDigit(s.charAt(0))) {
                         num += s.charAt(0);
                         s = s.substring(1);
                     }
                     tree.add(indent + "NumberExpression");
                     indent += "    ";
                     tree.add(indent + "NumberToken: " + num);
-                    if(isOp(s, 0)) {
+                    if (isOp(s, 0)) {
                         indent = indent.substring(4);
                         searchStatus = OP;
-                    }
-                    else if(s.charAt(0) == ')'){
+                    } else if (s.charAt(0) == ')') {
                         indent = indent.substring(4);
                         searchStatus = RPAREN;
-                    }
-                    else searchStatus = ERROR;
+                    } else searchStatus = ERROR;
                     break;
                 case OP:
                     tree.add(indent + "BinaryOperator: " + s.charAt(0));
                     s = s.substring(1);
-                    if(Character.isDigit(s.charAt(0))) searchStatus = NUM;
-                    else if(s.indexOf("eval") == 0) searchStatus = EVAL;
+                    if (Character.isDigit(s.charAt(0))) searchStatus = NUM;
+                    else if (s.indexOf("eval") == 0) searchStatus = EVAL;
                     else searchStatus = ERROR;
                     break;
                 case RPAREN:
+                    parenCount--;
                     tree.add(indent + "RParenthesis: )");
                     s = s.substring(1);
-                    if(s.length() > 0 && isOp(s, 0)) searchStatus = OP;
-                    else if(s.length() > 0 && s.charAt(0) == ')') {indent = indent.substring(4); break;}
-                    else searchStatus = ERROR;
+                    if (s.length() > 0 && isOp(s, 0)) searchStatus = OP;
+                    else if (s.length() > 0 && s.charAt(0) == ')') {
+                        indent = indent.substring(4);
+                        break;
+                    } else searchStatus = ERROR;
                     break;
                 case ERROR:
-                    return null;
+                    return new ArrayList<>();
             }
-        } while(s.length() > 0);
+            if(parenCount < 0) return new ArrayList<>();
+        } while (s.length() > 0);
         return tree;
-    }
-
-    private static int occurs(String check, String str) {
-        int count = 0;
-        do {
-            str = str.replaceFirst(check, "");
-            count++;
-        } while (str.contains(check));
-        return count;
     }
 }

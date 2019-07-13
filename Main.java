@@ -7,10 +7,11 @@ public class Main {
     private static final int OP = 2;
     private static final int NUM = 3;
     private static final int RPAREN = 4;
+    private static final int ERROR = 5;
 
     public static void main(String[] args) {
-        String eval = "eval(eval(33/3 + eval(2 * 2 + 1)) + eval(eval(2 + 1) * 3))";
-        for(String s : solution2(eval)) {
+        String eval = "eval(eval(eval(3 / eval(2 * 323 + 1)) + eval(3 * 3)))";
+        for(String s : genTree(eval)) {
             System.out.println(s);
         }
     }
@@ -19,8 +20,8 @@ public class Main {
         return String.valueOf(str.charAt(pos)).matches("[\\\\*|\\\\+|\\\\/|\\\\-]");
     }
 
-    private static ArrayList<String> solution2(String s) {
-        if(!solution(s)) return null;
+    private static ArrayList<String> genTree(String s) {
+        if(occurs("\\(", s) != occurs("\\)", s) || !s.contains("(") || !s.contains(")")) return new ArrayList<>();
         String indent = "";
         s = s.replaceAll(" ", "");
         ArrayList<String> tree = new ArrayList<>();
@@ -42,7 +43,11 @@ public class Main {
                         searchStatus = EVAL;
                         break;
                     }
-                    else searchStatus = NUM;
+                    else if(Character.isDigit(s.charAt(0))) {
+                        searchStatus = NUM;
+                        break;
+                    }
+                    else searchStatus = ERROR;
                     break;
                 case NUM:
                     String num = "";
@@ -58,11 +63,13 @@ public class Main {
                         searchStatus = OP;
                         break;
                     }
-                    else {
+                    else if(s.charAt(0) == ')'){
                         indent = indent.substring(4);
                         searchStatus = RPAREN;
                         break;
                     }
+                    else searchStatus = ERROR;
+                    break;
                 case OP:
                     tree.add(indent + "BinaryOperator: " + s.charAt(0));
                     s = s.substring(1);
@@ -74,6 +81,7 @@ public class Main {
                         searchStatus = EVAL;
                         break;
                     }
+                    else searchStatus = ERROR;
                     break;
                 case RPAREN:
                     tree.add(indent + "RParenthesis: )");
@@ -82,35 +90,14 @@ public class Main {
                         searchStatus = OP;
                         break;
                     }
-                    indent = indent.substring(4);
+                    else if(s.length() > 0 && s.charAt(0) == ')') {indent = indent.substring(4); break;}
+                    else searchStatus = ERROR;
                     break;
+                case ERROR:
+                    return null;
             }
         } while(s.length() > 0);
         return tree;
-    }
-
-    private static boolean solution(String s) {
-        if(occurs("\\(", s) != occurs("\\)", s) || !s.contains("(") || !s.contains(")")) {
-            return false;
-        }
-        s = s.replaceAll("eval", "");
-        s = s.replaceAll("\\s", "");
-        for(int i = 0; i < s.length(); i++) {
-            switch (s.charAt(i)) {
-                case '(':
-                    if(i == s.length() - 1) return false;
-                    else if(!Character.isDigit(s.charAt(i + 1)) && s.charAt(i + 1) != '(') return false;
-                    break;
-                case ')':
-                    if(i == s.length() - 1) break;
-                    if(s.charAt(i + 1) != ')' && !isOp(s, i + 1) ) return false;
-                    break;
-                default:
-                    if(Character.isDigit(s.charAt(i)) && !Character.isDigit(s.charAt(i + 1)) && !isOp(s, i + 1) && s.charAt(i + 1) != ')') return false;
-                    break;
-            }
-        }
-        return true;
     }
 
     private static int occurs(String check, String str) {

@@ -39,14 +39,8 @@ public class Main {
                     tree.add(indent + "LParenthesis: (");
                     s = s.substring(1);
                     if(s.charAt(0) == '(') break;
-                    else if(s.indexOf("eval") == 0) {
-                        searchStatus = EVAL;
-                        break;
-                    }
-                    else if(Character.isDigit(s.charAt(0))) {
-                        searchStatus = NUM;
-                        break;
-                    }
+                    else if(s.indexOf("eval") == 0) searchStatus = EVAL;
+                    else if(Character.isDigit(s.charAt(0))) searchStatus = NUM;
                     else searchStatus = ERROR;
                     break;
                 case NUM:
@@ -61,35 +55,24 @@ public class Main {
                     if(isOp(s, 0)) {
                         indent = indent.substring(4);
                         searchStatus = OP;
-                        break;
                     }
                     else if(s.charAt(0) == ')'){
                         indent = indent.substring(4);
                         searchStatus = RPAREN;
-                        break;
                     }
                     else searchStatus = ERROR;
                     break;
                 case OP:
                     tree.add(indent + "BinaryOperator: " + s.charAt(0));
                     s = s.substring(1);
-                    if(Character.isDigit(s.charAt(0))) {
-                        searchStatus = NUM;
-                        break;
-                    }
-                    else if(s.indexOf("eval") == 0) {
-                        searchStatus = EVAL;
-                        break;
-                    }
+                    if(Character.isDigit(s.charAt(0))) searchStatus = NUM;
+                    else if(s.indexOf("eval") == 0) searchStatus = EVAL;
                     else searchStatus = ERROR;
                     break;
                 case RPAREN:
                     tree.add(indent + "RParenthesis: )");
                     s = s.substring(1);
-                    if(s.length() > 0 && isOp(s, 0)) {
-                        searchStatus = OP;
-                        break;
-                    }
+                    if(s.length() > 0 && isOp(s, 0)) searchStatus = OP;
                     else if(s.length() > 0 && s.charAt(0) == ')') {indent = indent.substring(4); break;}
                     else searchStatus = ERROR;
                     break;

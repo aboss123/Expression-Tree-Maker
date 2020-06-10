@@ -1,2 +1,3 @@
 # Expression-Tree-Maker
-This will take in a tree and create an expression for it
+
+It will render a binary expression tree for elements that are inputted.
